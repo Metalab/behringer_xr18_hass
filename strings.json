@@ -1,0 +1,19 @@
+{
+    "title": "Behringer XR18 Mixer",
+    "config": {
+        "step": {
+            "user": {
+                "data": {
+                    "host": "IP Address",
+                    "port": "Port (default: 10024)"
+                }
+            }
+        },
+        "error": {
+            "already_configured": "This IP address is already configured."
+        },
+        "abort": {
+            "already_configured": "The Behringer XR18 Mixer at this IP address is already configured."
+        }
+    }
+}

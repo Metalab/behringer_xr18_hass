@@ -1,0 +1,15 @@
+{
+    "domain": "behringer_xr18",
+    "name": "Behringer XR18 Mixer",
+    "config_flow": true,
+    "documentation": "https://github.com/metalab/xr18-hass",
+    "requirements": [
+        "python-osc==1.8.1",
+        "aiohttp==3.8.4"
+    ],
+    "dependencies": [],
+    "codeowners": [
+        "@anlumo"
+    ],
+    "version": "1.0.0"
+}
