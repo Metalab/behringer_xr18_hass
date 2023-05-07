@@ -1,5 +1,6 @@
 from typing import Optional
 import logging
+import asyncio
 
 import pythonosc.udp_client as uc
 from pythonosc.dispatcher import Dispatcher
@@ -11,6 +12,7 @@ class XR18Mixer:
     def __init__(self, ip_address: str, port: int = 10024):
         self.client = uc.SimpleUDPClient(ip_address, port)
         self.ip_address = ip_address
+        self.periodic_task = None
 
     async def get_fader_level(self, channel: Optional[int]):
         if channel == None:
@@ -53,3 +55,21 @@ class XR18Mixer:
         else:
             cmd = f"/ch/{channel:02}/mix/on"
         return await self.client.send_message(cmd, int(not mute))
+
+    def set_helper_state(self, state: bool):
+        if state and self.periodic_task is None:
+            # Start the periodic task
+            self.periodic_task = asyncio.create_task(self.send_periodic_message("/xremotenfb"))
+        elif not state and self.periodic_task is not None:
+            # Cancel the periodic task
+            self.periodic_task.cancel()
+            self.periodic_task = None
+
+    async def send_periodic_message(self, message: str):
+        while True:
+            _LOGGER.debug(f'XR18 refresh ticker')
+            await self.send_osc_message(message)
+            for _ in range(300):  # 5 minutes * 60 seconds
+                await asyncio.sleep(1)
+                if self.periodic_task.cancelled():
+                    return
