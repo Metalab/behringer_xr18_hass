@@ -19,16 +19,20 @@ mute_channel_parser = re.compile(r'^/ch/(\d{2})/mix/on$')
 
 
 class XR18EventReceiver:
-    def __init__(self, fader_dispatcher: dict[int, Callable[[float], None]], mute_dispatcher: dict[int, Callable[[bool], None]]):
+    def __init__(self, fader_dispatcher: dict[int, Callable[[float], None]], mute_dispatcher: dict[int, Callable[[bool], None]], initial_fetch: Callable[[]]):
         super().__init__()
         self.transport = None
         self.fader_dispatcher = fader_dispatcher
         self.mute_dispatcher = mute_dispatcher
+        self.initial_fetch = initial_fetch
 
     def connection_made(self, transport):
         self.transport = transport
 
     def datagram_received(self, data, _addr):
+        if self.initial_fetch:
+            self.initial_fetch()
+            self.initial_fetch = None
         try:
             packet = OscPacket(data)
             for timed_message in packet.messages:
@@ -145,9 +149,13 @@ class XR18Mixer:
         self.client.send_message(cmd, int(not mute))
 
     async def start_listener(self):
+        initial_fetch = False
+
+        def fetched():
+            initial_fetch = True
         _LOGGER.debug('Starting listener for events')
         # Listen for incoming events
-        transport, _protocol = await self.hass.loop.create_datagram_endpoint(lambda: XR18EventReceiver(self.fader_dispatcher, self.mute_dispatcher), sock=self.sock)
+        transport, _protocol = await self.hass.loop.create_datagram_endpoint(lambda: XR18EventReceiver(self.fader_dispatcher, self.mute_dispatcher, fetched), sock=self.sock)
         self.transport = transport
 
         # Start the periodic task
@@ -158,9 +166,11 @@ class XR18Mixer:
         _LOGGER.debug('Fetch initial state')
         self.client.send_message("/xremotenfb", '')
         await asyncio.sleep(0.5)
-        for i in range(18):
-            self.refresh_fader_level(i)
-            self.refresh_mute_channel(i)
+        while not initial_fetch:
+            for i in range(18):
+                self.refresh_fader_level(i)
+                self.refresh_mute_channel(i)
+            await asyncio.sleep(0.5)
 
     def set_helper_state(self, state: bool):
         _LOGGER.debug(f'helper state = {state}')
