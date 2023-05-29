@@ -27,19 +27,19 @@ class VolumeNumber(NumberEntity):
         return f"XR18 Channel {self._channel} Volume"
 
     @property
-    def value(self) -> float:
+    def native_value(self) -> float:
         return self._value
 
     @property
-    def min_value(self):
+    def native_min_value(self):
         return 0.0
 
     @property
-    def max_value(self):
+    def native_max_value(self):
         return 1.0
 
     @property
-    def step(self):
+    def native_step(self):
         return 0.1
 
     async def async_set_native_value(self, value: float):
