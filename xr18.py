@@ -140,6 +140,7 @@ class XR18Mixer:
         return await self.client.send_message(cmd, int(not mute))
 
     async def start_listener(self):
+        _LOGGER.debug('Starting listener for events')
         # Listen for incoming events
         transport, _protocol = await asyncio.get_running_loop().create_datagram_endpoint(lambda: XR18EventReceiver(self.fader_dispatcher, self.mute_dispatcher), sock=self.sock)
         self.transport = transport
@@ -155,6 +156,7 @@ class XR18Mixer:
         )
 
     def set_helper_state(self, state: bool):
+        _LOGGER.debug(f'helper state = {state}')
         if state and self.periodic_task is None:
             asyncio.create_task(self.start_listener())
         elif not state and self.periodic_task is not None:

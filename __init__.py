@@ -16,7 +16,7 @@ CONF_XR18_SWITCH = "xr18_switch_entity_id"
 # import logging
 
 PLATFORMS = ["switch", "number"]
-# _LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: config_entries.ConfigEntry):
@@ -34,11 +34,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: config_entries.ConfigEnt
 
     def handle_helper_state_change(event):
         new_state = event.data.get("new_state")
+        _LOGGER.debug(f'new helper state {new_state}')
         if new_state:
             state = new_state.state == STATE_ON
             xr18_mixer.set_helper_state(state)
 
-    async_track_state_change_event(
+    hass.data[DOMAIN]['change_event_handler'] = async_track_state_change_event(
         hass,
         [entry.data[CONF_XR18_SWITCH]],
         handle_helper_state_change
@@ -51,5 +52,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     mixer = hass.data[DOMAIN][entry.entry_id]
     mixer.set_helper_state(False)
     hass.data[DOMAIN].pop(entry.entry_id)
+    if 'change_event_handler' in hass.data[DOMAIN]:
+        hass.data[DOMAIN]['change_event_handler']()
+        hass.data[DOMAIN].pop('change_event_handler')
 
     return True
