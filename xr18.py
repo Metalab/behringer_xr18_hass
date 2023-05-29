@@ -152,6 +152,7 @@ class XR18Mixer:
 
         # Fetch initial state
         _LOGGER.debug('Fetch initial state')
+        self.client.send_message("/xremotenfb", '')
         await asyncio.gather(
             *[self.refresh_fader_level(i) for i in range(18)],
             *[self.refresh_mute_channel(i) for i in range(18)],
@@ -170,10 +171,10 @@ class XR18Mixer:
 
     async def send_periodic_message(self, message: str, value: ArgValue):
         while True:
-            _LOGGER.debug(f'XR18 refresh ticker')
-            self.client.send_message(message, value)
             for _ in range(9):  # 9 seconds
                 await asyncio.sleep(1)
                 if self.periodic_task.cancelled():
                     _LOGGER.debug('Periodic task terminating')
                     return
+            _LOGGER.debug(f'XR18 refresh ticker')
+            self.client.send_message(message, value)
