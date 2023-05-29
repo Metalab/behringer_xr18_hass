@@ -1,4 +1,5 @@
 """Behringer XR18 Mixer integration for HomeAssistant."""
+import logging
 from .xr18 import XR18Mixer
 from homeassistant.const import (
     CONF_HOST,
