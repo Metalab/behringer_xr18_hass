@@ -39,13 +39,13 @@ class XR18EventReceiver:
                             self.fader_dispatcher[0](message.params[0])
                     case "/lr/mix/on":
                         if 0 in self.mute_dispatcher:
-                            self.mute_dispatcher[0](message.params[0])
+                            self.mute_dispatcher[0](not message.params[0])
                     case "/rtn/aux/mix/fader":
                         if 0 in self.fader_dispatcher[17]:
                             self.fader_dispatcher[17](message.params[0])
                     case "/rtn/aux/mix/on":
                         if 17 in self.mute_dispatcher[17]:
-                            self.mute_dispatcher[17](message.params[0])
+                            self.mute_dispatcher[17](not message.params[0])
                     case _:
                         parsed = fader_channel_parser.match(message.address)
                         if parsed:
@@ -59,7 +59,7 @@ class XR18EventReceiver:
                                 channel = int(parsed.group(1))
                                 if channel in self.mute_dispatcher:
                                     self.mute_dispatcher[channel](
-                                        message.params[0])
+                                        not message.params[0])
         except Exception as e:
             _LOGGER.error(f'Handling UDP packet failed: {e}')
 
