@@ -42,8 +42,8 @@ class VolumeNumber(NumberEntity):
     def native_step(self):
         return 0.1
 
-    async def async_set_native_value(self, value: float):
-        await self.mixer.set_fader_level(self._channel, value)
+    def set_native_value(self, value: float):
+        self.mixer.set_fader_level(self._channel, value)
         self._value = value
         self.async_write_ha_state()
 

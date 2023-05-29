@@ -30,13 +30,13 @@ class MuteSwitch(SwitchEntity):
     def is_on(self) -> bool:
         return self._state
 
-    async def async_turn_on(self, **kwargs):
-        await self.mixer.mute_channel(self._channel, True)
+    def turn_on(self, **kwargs):
+        self.mixer.mute_channel(self._channel, True)
         self._state = True
         self.async_write_ha_state()
 
-    async def async_turn_off(self, **kwargs):
-        await self.mixer.mute_channel(self._channel, False)
+    def turn_off(self, **kwargs):
+        self.mixer.mute_channel(self._channel, False)
         self._state = False
         self.async_write_ha_state()
 

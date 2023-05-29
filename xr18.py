@@ -90,7 +90,7 @@ class XR18Mixer:
     def unsubscribe_mute(self, channel: int):
         self.mute_dispatcher.pop(channel)
 
-    async def refresh_fader_level(self, channel: int):
+    def refresh_fader_level(self, channel: int):
         match channel:
             case 0:
                 cmd = "/lr/mix/fader"
@@ -104,7 +104,7 @@ class XR18Mixer:
         except BlockingIOError:
             return 0
 
-    async def set_fader_level(self, channel: int, level: float):
+    def set_fader_level(self, channel: int, level: float):
         match channel:
             case 0:
                 cmd = "/lr/mix/fader"
@@ -113,9 +113,9 @@ class XR18Mixer:
             case _:
                 cmd = f"/ch/{channel:02}/mix/fader"
 
-        return await self.client.send_message(cmd, float(level))
+        self.client.send_message(cmd, float(level))
 
-    async def refresh_mute_channel(self, channel: int):
+    def refresh_mute_channel(self, channel: int):
         match channel:
             case 0:
                 cmd = "/lr/mix/on"
@@ -129,7 +129,7 @@ class XR18Mixer:
         except BlockingIOError:
             return None
 
-    async def mute_channel(self, channel: int, mute: bool):
+    def mute_channel(self, channel: int, mute: bool):
         match channel:
             case 0:
                 cmd = "/lr/mix/on"
@@ -138,7 +138,7 @@ class XR18Mixer:
             case _:
                 cmd = f"/ch/{channel:02}/mix/on"
 
-        return await self.client.send_message(cmd, int(not mute))
+        self.client.send_message(cmd, int(not mute))
 
     async def start_listener(self):
         _LOGGER.debug('Starting listener for events')
@@ -153,10 +153,9 @@ class XR18Mixer:
         # Fetch initial state
         _LOGGER.debug('Fetch initial state')
         self.client.send_message("/xremotenfb", '')
-        await asyncio.gather(
-            *[self.refresh_fader_level(i) for i in range(18)],
-            *[self.refresh_mute_channel(i) for i in range(18)],
-        )
+        for i in range(18):
+            self.refresh_fader_level(i)
+            self.refresh_mute_channel(i)
 
     def set_helper_state(self, state: bool):
         _LOGGER.debug(f'helper state = {state}')
