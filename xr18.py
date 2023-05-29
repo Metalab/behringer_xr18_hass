@@ -2,6 +2,7 @@ from typing import Callable, Optional
 import logging
 import asyncio
 import re
+import traceback
 
 from homeassistant.core import HomeAssistant
 
@@ -41,10 +42,10 @@ class XR18EventReceiver:
                         if 0 in self.mute_dispatcher:
                             self.mute_dispatcher[0](not message.params[0])
                     case "/rtn/aux/mix/fader":
-                        if 0 in self.fader_dispatcher[17]:
+                        if 17 in self.fader_dispatcher:
                             self.fader_dispatcher[17](message.params[0])
                     case "/rtn/aux/mix/on":
-                        if 17 in self.mute_dispatcher[17]:
+                        if 17 in self.mute_dispatcher:
                             self.mute_dispatcher[17](not message.params[0])
                     case _:
                         parsed = fader_channel_parser.match(message.address)
@@ -62,6 +63,7 @@ class XR18EventReceiver:
                                         not message.params[0])
         except Exception as e:
             _LOGGER.error(f'Handling UDP packet failed: {e}')
+            _LOGGER.error(traceback.format_exc())
 
 
 class XR18Mixer:
