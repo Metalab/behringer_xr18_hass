@@ -19,7 +19,7 @@ mute_channel_parser = re.compile(r'^/ch/(\d{2})/mix/on$')
 
 
 class XR18EventReceiver:
-    def __init__(self, fader_dispatcher: dict[int, Callable[[float], None]], mute_dispatcher: dict[int, Callable[[bool], None]], initial_fetch: Callable[[]]):
+    def __init__(self, fader_dispatcher: dict[int, Callable[[float], None]], mute_dispatcher: dict[int, Callable[[bool], None]], initial_fetch: Callable):
         super().__init__()
         self.transport = None
         self.fader_dispatcher = fader_dispatcher
