@@ -154,10 +154,15 @@ class XR18Mixer:
         def fetched():
             nonlocal initial_fetch
             initial_fetch = True
+            _LOGGER.debug('Initial fetch done.')
+
         _LOGGER.debug('Starting listener for events')
         # Listen for incoming events
         transport, _protocol = await self.hass.loop.create_datagram_endpoint(lambda: XR18EventReceiver(self.fader_dispatcher, self.mute_dispatcher, fetched), sock=self.sock)
         self.transport = transport
+
+        # The XR18 is most likely still booting at this point
+        await asyncio.sleep(10)
 
         # Start the periodic task
         self.periodic_task = asyncio.create_task(
@@ -165,13 +170,13 @@ class XR18Mixer:
 
         # Fetch initial state
         _LOGGER.debug('Fetch initial state')
-        self.client.send_message("/xremotenfb", '')
-        await asyncio.sleep(0.5)
         while not initial_fetch:
+            self.client.send_message("/xremotenfb", '')
+            await asyncio.sleep(0.1)
             for i in range(18):
                 self.refresh_fader_level(i)
                 self.refresh_mute_channel(i)
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(5)
 
     def set_helper_state(self, state: bool):
         _LOGGER.debug(f'helper state = {state}')
