@@ -65,7 +65,8 @@ class XR18EventReceiver:
 
 
 class XR18Mixer:
-    def __init__(self, ip_address: str, port: int = 10024):
+    def __init__(self, hass: HomeAssistant, ip_address: str, port: int = 10024):
+        self.hass = hass
         self.fader_dispatcher = {}
         self.mute_dispatcher = {}
         self.client = uc.SimpleUDPClient(ip_address, port)
@@ -142,7 +143,7 @@ class XR18Mixer:
     async def start_listener(self):
         _LOGGER.debug('Starting listener for events')
         # Listen for incoming events
-        transport, _protocol = await asyncio.get_running_loop().create_datagram_endpoint(lambda: XR18EventReceiver(self.fader_dispatcher, self.mute_dispatcher), sock=self.sock)
+        transport, _protocol = await self.hass.loop.create_datagram_endpoint(lambda: XR18EventReceiver(self.fader_dispatcher, self.mute_dispatcher), sock=self.sock)
         self.transport = transport
 
         # Start the periodic task
@@ -158,7 +159,7 @@ class XR18Mixer:
     def set_helper_state(self, state: bool):
         _LOGGER.debug(f'helper state = {state}')
         if state and self.periodic_task is None:
-            asyncio.create_task(self.start_listener())
+            self.hass.async_create_task(self.start_listener())
         elif not state and self.periodic_task is not None:
             # Cancel the periodic task
             self.periodic_task.cancel()

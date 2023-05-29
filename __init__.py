@@ -24,7 +24,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: config_entries.ConfigEnt
     ip_address = entry.data[CONF_HOST]
     port = entry.data[CONF_PORT]
 
-    xr18_mixer = XR18Mixer(ip_address, port)
+    xr18_mixer = XR18Mixer(hass, ip_address, port)
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = xr18_mixer
 
