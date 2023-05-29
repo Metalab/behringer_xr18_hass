@@ -11,7 +11,7 @@ class VolumeNumber(NumberEntity):
         mixer.subscribe_fader(channel, self.update_value)
 
     def update_value(self, value: float):
-        self._value = value
+        self._value = round(value * 1000) / 10
         self.async_write_ha_state()
 
     @property
@@ -32,18 +32,18 @@ class VolumeNumber(NumberEntity):
 
     @property
     def native_min_value(self):
-        return 0.0
+        return 0
 
     @property
     def native_max_value(self):
-        return 1.0
+        return 100
 
     @property
     def native_step(self):
         return 0.1
 
     def set_native_value(self, value: float):
-        self.mixer.set_fader_level(self._channel, value)
+        self.mixer.set_fader_level(self._channel, value / 100)
         self._value = value
         self.async_write_ha_state()
 
