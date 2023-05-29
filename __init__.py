@@ -18,6 +18,7 @@ CONF_XR18_SWITCH = "xr18_switch_entity_id"
 PLATFORMS = ["switch", "number"]
 # _LOGGER = logging.getLogger(__name__)
 
+
 async def async_setup_entry(hass: HomeAssistant, entry: config_entries.ConfigEntry):
     ip_address = entry.data[CONF_HOST]
     port = entry.data[CONF_PORT]

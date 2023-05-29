@@ -2,11 +2,21 @@ from homeassistant.components.switch import SwitchEntity
 from .xr18 import XR18Mixer
 from . import DOMAIN
 
+
 class MuteSwitch(SwitchEntity):
     def __init__(self, mixer: XR18Mixer, channel: int):
         self.mixer = mixer
         self._channel = channel
         self._state = False
+        mixer.subscribe_mute(channel, self.update_value)
+
+    def update_value(self, value: bool):
+        self._state = value
+        self.async_write_ha_state()
+
+    @property
+    def should_poll(self):
+        return False
 
     @property
     def unique_id(self):
@@ -17,7 +27,7 @@ class MuteSwitch(SwitchEntity):
         return f"XR18 Channel {self._channel} Mute Switch"
 
     @property
-    def is_on(self):
+    def is_on(self) -> bool:
         return self._state
 
     async def async_turn_on(self, **kwargs):
@@ -30,14 +40,12 @@ class MuteSwitch(SwitchEntity):
         self._state = False
         self.async_write_ha_state()
 
-    async def async_update(self):
-        self._state = await self.mixer.get_mute_channel(self._channel)
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     mixer = hass.data[DOMAIN][config_entry.entry_id]
 
     # Create volume number entities for all channels (assumes 18 channels)
-    volume_numbers = [MuteSwitch(mixer, channel) for channel in range(1, 19)]
+    volume_numbers = [MuteSwitch(mixer, channel) for channel in range(18)]
 
     # Register the entities with Home Assistant
     async_add_entities(volume_numbers, update_before_add=True)
