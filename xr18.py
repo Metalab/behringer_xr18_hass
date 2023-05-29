@@ -152,6 +152,7 @@ class XR18Mixer:
         initial_fetch = False
 
         def fetched():
+            nonlocal initial_fetch
             initial_fetch = True
         _LOGGER.debug('Starting listener for events')
         # Listen for incoming events
