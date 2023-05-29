@@ -151,6 +151,7 @@ class XR18Mixer:
             self.send_periodic_message("/xremotenfb", ''))
 
         # Fetch initial state
+        _LOGGER.debug('Fetch initial state')
         await asyncio.gather(
             *[self.refresh_fader_level(i) for i in range(18)],
             *[self.refresh_mute_channel(i) for i in range(18)],
