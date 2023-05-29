@@ -99,6 +99,8 @@ class XR18Mixer:
             case _:
                 cmd = f"/ch/{channel:02}/mix/fader"
 
+        _LOGGER.debug(f'send message "{cmd}"')
+
         try:
             self.client.send(uc.OscMessageBuilder(cmd).build())
         except BlockingIOError:
@@ -113,6 +115,8 @@ class XR18Mixer:
             case _:
                 cmd = f"/ch/{channel:02}/mix/fader"
 
+        _LOGGER.debug(f'send message "{cmd}" [{level}]')
+
         self.client.send_message(cmd, float(level))
 
     def refresh_mute_channel(self, channel: int):
@@ -123,6 +127,8 @@ class XR18Mixer:
                 cmd = "/rtn/aux/mix/on"
             case _:
                 cmd = f"/ch/{channel:02}/mix/on"
+
+        _LOGGER.debug(f'send message "{cmd}"')
 
         try:
             self.client.send(uc.OscMessageBuilder(cmd).build())
@@ -137,6 +143,8 @@ class XR18Mixer:
                 cmd = "/rtn/aux/mix/on"
             case _:
                 cmd = f"/ch/{channel:02}/mix/on"
+
+        _LOGGER.debug(f'send message "{cmd}" [{not mute}]')
 
         self.client.send_message(cmd, int(not mute))
 
