@@ -101,10 +101,7 @@ class XR18Mixer:
 
         _LOGGER.debug(f'send message "{cmd}"')
 
-        try:
-            self.client.send(uc.OscMessageBuilder(cmd).build())
-        except BlockingIOError:
-            return 0
+        self.client.send_message(cmd, None)
 
     def set_fader_level(self, channel: int, level: float):
         match channel:
@@ -130,10 +127,7 @@ class XR18Mixer:
 
         _LOGGER.debug(f'send message "{cmd}"')
 
-        try:
-            self.client.send(uc.OscMessageBuilder(cmd).build())
-        except BlockingIOError:
-            return None
+        self.client.send_message(cmd, None)
 
     def mute_channel(self, channel: int, mute: bool):
         match channel:
