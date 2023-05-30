@@ -8,10 +8,16 @@ class MuteSwitch(SwitchEntity):
         self.mixer = mixer
         self._channel = channel
         self._state = False
+        self.available = False
         mixer.subscribe_mute(channel, self.update_value)
+        mixer.subscribe_available(self.update_available)
 
     def update_value(self, value: bool):
         self._state = value
+        self.async_write_ha_state()
+
+    def update_available(self, value: bool):
+        self.available = value
         self.async_write_ha_state()
 
     @property

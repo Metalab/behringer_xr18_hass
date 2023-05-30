@@ -8,10 +8,16 @@ class VolumeNumber(NumberEntity):
         self.mixer = mixer
         self._channel = channel
         self._value = 0.0
+        self.available = False
         mixer.subscribe_fader(channel, self.update_value)
+        mixer.subscribe_available(self.update_available)
 
     def update_value(self, value: float):
         self._value = round(value * 1000) / 10
+        self.async_write_ha_state()
+
+    def update_available(self, value: bool):
+        self.available = value
         self.async_write_ha_state()
 
     @property

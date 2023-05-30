@@ -75,6 +75,7 @@ class XR18Mixer:
         self.hass = hass
         self.fader_dispatcher = {}
         self.mute_dispatcher = {}
+        self.available_dispatcher = []
         self.client = uc.SimpleUDPClient(ip_address, port)
         self.ip_address = ip_address
         self.periodic_task = None
@@ -83,6 +84,9 @@ class XR18Mixer:
     @property
     def sock(self):
         return self.client._sock
+
+    def subscribe_available(self, callback: Callable[[bool], None]):
+        self.available_dispatcher.append(callback)
 
     def subscribe_fader(self, channel: int, callback: Callable[[float], None]):
         self.fader_dispatcher[channel] = callback
@@ -177,12 +181,16 @@ class XR18Mixer:
                 self.refresh_fader_level(i)
                 self.refresh_mute_channel(i)
             await asyncio.sleep(5)
+        for ad in self.available_dispatcher:
+            ad(True)
 
     def set_helper_state(self, state: bool):
         _LOGGER.debug(f'helper state = {state}')
         if state and self.periodic_task is None:
             self.hass.async_create_task(self.start_listener())
         elif not state and self.periodic_task is not None:
+            for ad in self.available_dispatcher:
+                ad(False)
             # Cancel the periodic task
             self.periodic_task.cancel()
             self.periodic_task = None
