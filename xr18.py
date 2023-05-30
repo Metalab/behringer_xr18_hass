@@ -76,14 +76,17 @@ class XR18Mixer:
         self.fader_dispatcher = {}
         self.mute_dispatcher = {}
         self.available_dispatcher = []
-        self.client = uc.SimpleUDPClient(ip_address, port)
+        self.client = None
+        self.port = port
         self.ip_address = ip_address
         self.periodic_task = None
         self.transport = None
 
     @property
     def sock(self):
-        return self.client._sock
+        if self.client:
+            return self.client._sock
+        return None
 
     def subscribe_available(self, callback: Callable[[bool], None]):
         self.available_dispatcher.append(callback)
@@ -101,56 +104,60 @@ class XR18Mixer:
         self.mute_dispatcher.pop(channel)
 
     def refresh_fader_level(self, channel: int):
-        match channel:
-            case 0:
-                cmd = "/lr/mix/fader"
-            case 17:
-                cmd = "/rtn/aux/mix/fader"
-            case _:
-                cmd = f"/ch/{channel:02}/mix/fader"
+        if self.client:
+            match channel:
+                case 0:
+                    cmd = "/lr/mix/fader"
+                case 17:
+                    cmd = "/rtn/aux/mix/fader"
+                case _:
+                    cmd = f"/ch/{channel:02}/mix/fader"
 
-        _LOGGER.debug(f'send message "{cmd}"')
+            _LOGGER.debug(f'send message "{cmd}"')
 
-        self.client.send_message(cmd, None)
+            self.client.send_message(cmd, None)
 
     def set_fader_level(self, channel: int, level: float):
-        match channel:
-            case 0:
-                cmd = "/lr/mix/fader"
-            case 17:
-                cmd = "/rtn/aux/mix/fader"
-            case _:
-                cmd = f"/ch/{channel:02}/mix/fader"
+        if self.client:
+            match channel:
+                case 0:
+                    cmd = "/lr/mix/fader"
+                case 17:
+                    cmd = "/rtn/aux/mix/fader"
+                case _:
+                    cmd = f"/ch/{channel:02}/mix/fader"
 
-        _LOGGER.debug(f'send message "{cmd}" [{level}]')
+            _LOGGER.debug(f'send message "{cmd}" [{level}]')
 
-        self.client.send_message(cmd, float(level))
+            self.client.send_message(cmd, float(level))
 
     def refresh_mute_channel(self, channel: int):
-        match channel:
-            case 0:
-                cmd = "/lr/mix/on"
-            case 17:
-                cmd = "/rtn/aux/mix/on"
-            case _:
-                cmd = f"/ch/{channel:02}/mix/on"
+        if self.client:
+            match channel:
+                case 0:
+                    cmd = "/lr/mix/on"
+                case 17:
+                    cmd = "/rtn/aux/mix/on"
+                case _:
+                    cmd = f"/ch/{channel:02}/mix/on"
 
-        _LOGGER.debug(f'send message "{cmd}"')
+            _LOGGER.debug(f'send message "{cmd}"')
 
-        self.client.send_message(cmd, None)
+            self.client.send_message(cmd, None)
 
     def mute_channel(self, channel: int, mute: bool):
-        match channel:
-            case 0:
-                cmd = "/lr/mix/on"
-            case 17:
-                cmd = "/rtn/aux/mix/on"
-            case _:
-                cmd = f"/ch/{channel:02}/mix/on"
+        if self.client:
+            match channel:
+                case 0:
+                    cmd = "/lr/mix/on"
+                case 17:
+                    cmd = "/rtn/aux/mix/on"
+                case _:
+                    cmd = f"/ch/{channel:02}/mix/on"
 
-        _LOGGER.debug(f'send message "{cmd}" [{not mute}]')
+            _LOGGER.debug(f'send message "{cmd}" [{not mute}]')
 
-        self.client.send_message(cmd, int(not mute))
+            self.client.send_message(cmd, int(not mute))
 
     async def start_listener(self):
         initial_fetch = False
@@ -161,6 +168,7 @@ class XR18Mixer:
             _LOGGER.debug('Initial fetch done.')
 
         _LOGGER.debug('Starting listener for events')
+        self.client = uc.SimpleUDPClient(self.ip_address, self.port)
         # Listen for incoming events
         transport, _protocol = await self.hass.loop.create_datagram_endpoint(lambda: XR18EventReceiver(self.fader_dispatcher, self.mute_dispatcher, fetched), sock=self.sock)
         self.transport = transport
@@ -196,6 +204,7 @@ class XR18Mixer:
             self.periodic_task = None
             self.transport.close()
             self.transport = None
+            self.client = None
 
     async def send_periodic_message(self, message: str, value: ArgValue):
         while True:
@@ -205,4 +214,5 @@ class XR18Mixer:
                     _LOGGER.debug('Periodic task terminating')
                     return
             _LOGGER.debug(f'XR18 refresh ticker')
-            self.client.send_message(message, value)
+            if self.client:
+                self.client.send_message(message, value)
