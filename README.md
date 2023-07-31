@@ -19,7 +19,7 @@ Enabling the switch also triggers fetching the full configuration of the mixer.
 
 The integration can be added to Home Assistant using the following steps:
 
-1. Copy the content of this repository to `custom_components/behringer_xr18_hass` in your Home Assistant configuration directory.
+1. Copy the content of this repository to `custom_components/behringer_xr18` in your Home Assistant configuration directory.
 2. Restart Home Assistant
 3. Navigate to the Home Assistant Integrations page.
 4. Click on the "+ ADD INTEGRATION" button.
