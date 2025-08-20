@@ -28,10 +28,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: config_entries.ConfigEnt
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = xr18_mixer
 
-    for platform in PLATFORMS:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(entry, platform)
-        )
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     def handle_helper_state_change(event):
         new_state = event.data.get("new_state")
